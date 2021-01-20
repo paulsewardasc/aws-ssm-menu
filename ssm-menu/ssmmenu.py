@@ -97,7 +97,7 @@ def main():
     menu_entry_index = None
     # If no search list show all entries
     if len(searchlist) == 0:
-      menu_entry_index = show_menu(lines)
+      menu_entry_index = show_menu(lines,lines)
     else:
       # Show only matching entries
       menu_entry_index = searchforline(searchlist, lines)
