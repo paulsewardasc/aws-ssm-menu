@@ -74,7 +74,7 @@ ssm
 
 ## Update
 ```bash
-cd ./ssm-menu
+cd ./aws-ssm-menu
 git pull
 cp ./ssm-menu/ssm.py ~/.local/bin/ssm
 cp ./ssm-menu/ssmmenu.py ~/.local/bin/ssmmenu
