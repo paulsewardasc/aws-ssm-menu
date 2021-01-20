@@ -21,7 +21,7 @@ e.g.
 
 **Note**:
 
-You need to have a private key that has access to the instance you want to ssh to and you need AWS IAM access to the documents SSM AWS-StartSSHSession and  AWS-StartPortForwardingSession
+**You need to have a private key that has access to the instance you want to ssh to and you need AWS IAM access to the documents SSM AWS-StartSSHSession and  AWS-StartPortForwardingSession**
 
 e.g.
 
