@@ -53,7 +53,7 @@ Install:
 * Download the git contents
 
 ```bash
-git clone git@github.com:paulsewardasc/ssm-menu.git
+git clone git@github.com:paulsewardasc/aws-ssm-menu.git
 ```
 
 * Add the profiles to your ~/.aws/credentials file
