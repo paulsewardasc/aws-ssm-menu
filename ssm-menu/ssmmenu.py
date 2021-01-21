@@ -22,8 +22,9 @@ def get_searchstr():
     my_parser.add_argument('search', nargs='*')
     my_parser.add_argument('--show', action='store_true')
     my_parser.add_argument('--forward', nargs=2, help='localport destinationport')
+    my_parser.add_argument('--key', nargs=1, help='path to the keyfile you want to use, this overides config')
     args = my_parser.parse_args()
-    return args.search, args.show, args.forward
+    return args.search, args.show, args.forward, args.key
 
 def get_vars(home):
     file1 = open(f'{home}/.ssm/ssm.config','r')
@@ -93,7 +94,9 @@ def main():
     home = os.path.expanduser("~")
     sshuser, keyfile = get_vars(home)
     lines = get_lines(home)
-    searchlist, showcommands, forwardcommand = get_searchstr()
+    searchlist, showcommands, forwardcommand, altkey = get_searchstr()
+    if altkey is not None:
+      keyfile = os.path.expanduser(altkey[0])
     menu_entry_index = None
     # If no search list show all entries
     if len(searchlist) == 0:
@@ -104,7 +107,7 @@ def main():
     if menu_entry_index is not None:
       fields = lines[menu_entry_index].strip().split(',')
       id=fields[2].strip()
-      ifo = f'-i {keyfile}'
+      ifo = f'-i {keyfile} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'
       pco = f'-o ProxyCommand="sh -c \'aws ssm start-session --target %h --document-name AWS-StartSSHSession --parameters \"portNumber=%p\" --profile={fields[0]} --region={fields[4]}\'"'
       if showcommands is False:
         if forwardcommand is None:
@@ -114,7 +117,6 @@ def main():
           dport = forwardcommand[1]
           print(f'Port Forwarding {lport} to {dport} on Instance {id}')
           pc = 'aws ssm start-session --target ' + id + ' --profile=' + fields[0] + ' --region=' + fields[4] + ' --document-name AWS-StartPortForwardingSession --parameters \'{"portNumber":["' + dport + '"],"localPortNumber":["' + lport + '"]}\''
-#          print(f'aws ssm start-session --target {id} --parameters \'{"portNumber":["{dport}"],"localPortNumber":["{lport}"}\'')
           os.system(f'{pc}')
       else:
         print('Add the following to your ssh config (~/.ssh/config)\n')
