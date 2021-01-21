@@ -16,6 +16,7 @@ e.g.
 * `ssmmenu web` : will show all instances with the name containing `web`
 * `ssmmenu prod.*web` will show all production web servers matching the regex of `.*prod.*web.*`
 * `sshmenu --show` will not run the ssh command but show you the configuration needed to add to you `~/.ssh/config` so that other programs e.g. scp can use
+* `sshmenu --key ~/<myotherkeyfile>` will use an alternative keyfile, this must have 600 file permissions
 * `sshmenu --forward 8080 80` will forward local port 8080 to port 80 on the EC2 instance so to can access the website from localhost:8080
 * `sshmenu --forward 2222 22` will forward local port 2222 to port 22 on the EC2 instance so to can access port 22 on the EC2 using localhost:2222 (e.g. `ssh -i awsssm.pem ec2-user@localhost -p 2222`)
 
