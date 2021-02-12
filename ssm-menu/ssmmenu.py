@@ -23,8 +23,9 @@ def get_searchstr():
     my_parser.add_argument('--show', action='store_true')
     my_parser.add_argument('--forward', nargs=2, help='localport destinationport')
     my_parser.add_argument('--key', nargs=1, help='path to the keyfile you want to use, this overides config')
+    my_parser.add_argument('--user', nargs=1, help='username to use, this overides config')
     args = my_parser.parse_args()
-    return args.search, args.show, args.forward, args.key
+    return args.search, args.show, args.forward, args.key, args.user
 
 def get_vars(home):
     file1 = open(f'{home}/.ssm/ssm.config','r')
@@ -52,7 +53,6 @@ def get_lines(home):
     file2.close()
     lines=list(map(str.strip, lines))
     return lines
-    
 
 def show_menu(mlines, lines):
     menuitems = []
@@ -94,7 +94,9 @@ def main():
     home = os.path.expanduser("~")
     sshuser, keyfile = get_vars(home)
     lines = get_lines(home)
-    searchlist, showcommands, forwardcommand, altkey = get_searchstr()
+    searchlist, showcommands, forwardcommand, altkey, altuser = get_searchstr()
+    if altuser is not None:
+      sshuser = altuser[0]
     if altkey is not None:
       keyfile = os.path.expanduser(altkey[0])
     menu_entry_index = None
