@@ -48,9 +48,10 @@ def main():
           ec2info = defaultdict()
           for instance in running_instances:
             name = "blank"
-            for tag in instance.tags:
-              if tag['Key'] == 'Name':
-                name = tag['Value']
+            if instance.tags:
+              for tag in instance.tags:
+                if tag['Key'] == 'Name':
+                  name = tag['Value']
             # Add instance info to a dictionary         
             ec2info[instance.id] = {
               'Name': name,
