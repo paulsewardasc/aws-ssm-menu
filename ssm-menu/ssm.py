@@ -85,7 +85,7 @@ def main():
       None  
   
   file2 = open(f'{home}/.ssm/ssm.csv', 'w') 
-  print('Found: ')
+  print('Found the following EC2s: \n')
   for menuitem in menu:
     print(f'{menuitem}', file=file2)
     print(f'{menuitem}')
