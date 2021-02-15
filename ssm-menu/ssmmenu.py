@@ -113,6 +113,12 @@ def main():
       pco = f'-o ProxyCommand="sh -c \'aws ssm start-session --target %h --document-name AWS-StartSSHSession --parameters \"portNumber=%p\" --profile={fields[0]} --region={fields[4]}\'"'
       if showcommands is False:
         if forwardcommand is None:
+          try:
+            clear = lambda: os.system('clear')
+            clear()
+          except:
+            clear = lambda: os.system('cls')
+            clear()
           os.system(f'ssh {ifo} {pco} {sshuser}@{id}')
         else:
           lport = forwardcommand[0]
