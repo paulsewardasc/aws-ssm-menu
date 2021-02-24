@@ -40,6 +40,8 @@ Requires:
 * python3
 * pip3
 
+Python for Windows can be found here: https://www.python.org/downloads/windows/
+
 Pre-Requisites:
 
 ```bash
