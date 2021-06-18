@@ -26,40 +26,49 @@ def main():
   menu = []
   file1 = open(f'{home}/.ssm/ssm.config', 'r') 
   lines = file1.readlines() 
+  regions = ['eu-west-3', 'eu-west-2', 'eu-west-1', 'us-east-1', 'us-east-2', 'us-west-1', 'us-west-2']
   profiles = []
   for line in lines:
     line = line.strip()
     if 'profiles' in line:
       profile = line[line.find("[")+1:line.find("]")]
       profiles = profile.split(',')
+    if 'regions' in line:
+      regions = line[line.find("[")+1:line.find("]")]
+      regions = regions.replace(' ','')
+      regions = regions.split(',')
   
   #session = boto3.Session(region_name='us-east-1')
   #client = boto3.client('ec2')
   #regions = [region['RegionName'] for region in client.describe_regions()['Regions']]
-  regions = ['eu-west-3', 'eu-west-2', 'eu-west-1', 'us-east-1', 'us-east-2', 'us-west-1', 'us-west-2']
   
   for profile in profiles:
     try:
       for region in regions:
         session = boto3.Session(profile_name=profile, region_name=region)
         try:
-          ec2 = session.resource('ec2')
-          running_instances = ec2.instances.filter(Filters=[{ 'Name': 'instance-state-name', 'Values': ['running']}])
+          ec2 = session.client('ec2')
+          ssm = session.client('ssm')
+          ssm_instances = ssm.describe_instance_information()
           ec2info = defaultdict()
-          for instance in running_instances:
+          for instance in ssm_instances['InstanceInformationList']:
+            instanceId = instance['InstanceId']
+            instance_details = ec2.describe_instances(InstanceIds=[instanceId])['Reservations'][0]['Instances'][0]
             name = "blank"
-            if instance.tags:
-              for tag in instance.tags:
+            if instance_details['Tags']:
+              for tag in instance_details['Tags']:
                 if tag['Key'] == 'Name':
                   name = tag['Value']
-            # Add instance info to a dictionary         
-            ec2info[instance.id] = {
+            try:
+              publicIp = instance_details['PublicIpAddress']
+            except:
+              publicIp = ''
+            ec2info[instanceId] = {
               'Name': name,
-              'Type': instance.instance_type,
-              'State': instance.state['Name'],
-              'Private IP': instance.private_ip_address,
-              'Public IP': instance.public_ip_address,
-              'Launch Time': instance.launch_time,
+              'Type': instance_details['InstanceType'],
+              'State': instance_details['State']['Name'],
+              'Private IP': instance_details['NetworkInterfaces'][0]['PrivateIpAddress'],
+              'Public IP': publicIp,
               'Region' : region
             }
         except Exception as e:
