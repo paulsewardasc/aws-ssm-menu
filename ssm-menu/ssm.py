@@ -8,6 +8,8 @@ import time
 import json
 from collections import defaultdict
 
+version = '1.1'
+
 def main():
   # Create ~/.ssm folder if it does not exist
   home = os.path.expanduser("~")
@@ -94,6 +96,7 @@ def main():
       None  
   
   file2 = open(f'{home}/.ssm/ssm.csv', 'w') 
+  print(f'SSM Version: {version}')
   print('Found the following EC2s: \n')
   for menuitem in menu:
     print(f'{menuitem}', file=file2)
