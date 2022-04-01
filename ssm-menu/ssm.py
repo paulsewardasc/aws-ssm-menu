@@ -7,8 +7,15 @@ from pathlib import Path
 import time
 import json
 from collections import defaultdict
+import datetime
 
 version = '1.1'
+
+def datetime_handler(x):
+    if isinstance(x, datetime.datetime):
+        return x.isoformat()
+    raise TypeError("Unknown type")
+
 
 def main():
   # Create ~/.ssm folder if it does not exist
@@ -43,7 +50,7 @@ def main():
   #session = boto3.Session(region_name='us-east-1')
   #client = boto3.client('ec2')
   #regions = [region['RegionName'] for region in client.describe_regions()['Regions']]
-  
+ 
   for profile in profiles:
     try:
       for region in regions:
@@ -51,16 +58,31 @@ def main():
         try:
           ec2 = session.client('ec2')
           ssm = session.client('ssm')
+          ssm_instance_store = [] 
           ssm_instances = ssm.describe_instance_information()
+          for ssm_instance in ssm_instances['InstanceInformationList']:
+            ssm_instance_store.append(ssm_instance)
+          while 'NextToken' in ssm_instances:
+            nextToken = ssm_instances['NextToken']
+            ssm_instances = ssm.describe_instance_information(NextToken=nextToken)
+            for ssm_instance in ssm_instances['InstanceInformationList']:
+              ssm_instance_store.append(ssm_instance)
+    
           ec2info = defaultdict()
-          for instance in ssm_instances['InstanceInformationList']:
+          #print(json.dumps(ssm_instances, indent=2, default=datetime_handler))
+          #if region == 'us-east-1':
+          #  sys.exit()
+          for instance in ssm_instance_store:
             instanceId = instance['InstanceId']
             instance_details = ec2.describe_instances(InstanceIds=[instanceId])['Reservations'][0]['Instances'][0]
             name = "blank"
-            if instance_details['Tags']:
-              for tag in instance_details['Tags']:
-                if tag['Key'] == 'Name':
-                  name = tag['Value']
+            try:
+              if instance_details['Tags']:
+                for tag in instance_details['Tags']:
+                  if tag['Key'] == 'Name':
+                    name = tag['Value']
+            except:
+              None
             try:
               publicIp = instance_details['PublicIpAddress']
             except:
@@ -74,18 +96,20 @@ def main():
               'Region' : region
             }
         except Exception as e:
-          print('Error on line {}'.format(sys.exc_info()[-1].tb_lineno), type(e).__name__, e)
+          print('Error on line [{}] {}'.format(profile,sys.exc_info()[-1].tb_lineno), type(e).__name__, e)
+          sys.exit()
           None 
         try:
           if len(ec2info) > 0:
-            ssm = session.client('ssm')
-            ssm_instances = [i['InstanceId'] for i in session.client('ssm').describe_instance_information()['InstanceInformationList']]
-            if len(ssm_instances) > 0:
-              for ssm_instance in ssm_instances:
+            #ssm = session.client('ssm')
+            #ssm_instances = [i['InstanceId'] for i in session.client('ssm').describe_instance_information()['InstanceInformationList']]
+            if len(ssm_instance_store) > 0:
+              for ssm_instance in ssm_instance_store:
+                instanceId = ssm_instance['InstanceId'] 
                 #ind = ec2info.index(ssm_instance)
                 for instance_id, instance in ec2info.items():
                   #print(instance['Name'], instance_id, ssm_instance)
-                  if instance_id == ssm_instance:
+                  if instance_id == instanceId:
                     menu.append((f'{profile},{instance["Name"]},{instance_id},{instance["Private IP"]},{instance["Region"]}'))
               
         except Exception as e:

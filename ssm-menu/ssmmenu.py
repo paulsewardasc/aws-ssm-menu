@@ -78,7 +78,7 @@ def searchforline(searchlist, lines):
     for line in lines:
       line = line.strip()
       for searchstr in searchlist:
-        pattern = re.compile('.*' + searchstr + '.*')
+        pattern = re.compile('(?i).*' + searchstr + '.*')
         if re.match(pattern, line):
           found_lines.append(line)
           found_index = index
@@ -109,7 +109,7 @@ def main():
     if menu_entry_index is not None:
       fields = lines[menu_entry_index].strip().split(',')
       id=fields[2].strip()
-      ifo = f'-i {keyfile} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'
+      ifo = f'-i {keyfile} -o IdentitiesOnly=yes -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'
       pco = f'-o ProxyCommand="sh -c \'aws ssm start-session --target %h --document-name AWS-StartSSHSession --parameters \"portNumber=%p\" --profile={fields[0]} --region={fields[4]}\'"'
       if showcommands is False:
         if forwardcommand is None:
@@ -119,12 +119,13 @@ def main():
           except:
             clear = lambda: os.system('cls')
             clear()
+          print(f'ssh {ifo} {pco} {sshuser}@{id}')
           os.system(f'ssh {ifo} {pco} {sshuser}@{id}')
         else:
           lport = forwardcommand[0]
           dport = forwardcommand[1]
-          print(f'Port Forwarding {lport} to {dport} on Instance {id}')
           pc = 'aws ssm start-session --target ' + id + ' --profile=' + fields[0] + ' --region=' + fields[4] + ' --document-name AWS-StartPortForwardingSession --parameters \'{"portNumber":["' + dport + '"],"localPortNumber":["' + lport + '"]}\''
+          print(f'{pc}')
           os.system(f'{pc}')
       else:
         print('Add the following to your ssh config (~/.ssh/config)\n')
