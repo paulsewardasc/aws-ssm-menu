@@ -1,4 +1,0 @@
-AKIAAAAAAAAAAAAA
-username
-ascential
-ssmmenu
