@@ -67,7 +67,9 @@ git clone git@github.com:paulsewardasc/aws-ssm-menu.git
 cp ./ssm-menu/ssm-menu/ssm.py ~/.local/bin/ssm
 chmod +x ~/.local/bin/ssm
 cp ./ssm-menu/ssm-menu/ssmmenu.py ~/.local/bin/ssmmenu
+cp ./ssm-menu/vaultae.sh ~/.local/bin/vaultae
 chmod +x ~/.local/bin/ssmmenu
+chmod +x ~/.local/bin/vaultae
 ssm
 ```
 * Edit the ~/.ssm/ssm.config to match the profiles you want to use in your ~/.aws/credentials file and then run ssm again to populate the csv file
