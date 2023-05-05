@@ -20,12 +20,13 @@ class bcolors:
 def get_searchstr():
     my_parser = argparse.ArgumentParser(description='SSM Menu: ssmmenu [search]') 
     my_parser.add_argument('search', nargs='*')
+    my_parser.add_argument('--noprofile', action='store_true', help='dont use a profile, use the environmental variables')
     my_parser.add_argument('--show', action='store_true')
     my_parser.add_argument('--forward', nargs=2, help='localport destinationport')
     my_parser.add_argument('--key', nargs=1, help='path to the keyfile you want to use, this overides config')
     my_parser.add_argument('--user', nargs=1, help='username to use, this overides config')
     args = my_parser.parse_args()
-    return args.search, args.show, args.forward, args.key, args.user
+    return args.search, args.show, args.forward, args.key, args.user, args.noprofile
 
 def get_vars(home):
     file1 = open(f'{home}/.ssm/ssm.config','r')
@@ -94,7 +95,7 @@ def main():
     home = os.path.expanduser("~")
     sshuser, keyfile = get_vars(home)
     lines = get_lines(home)
-    searchlist, showcommands, forwardcommand, altkey, altuser = get_searchstr()
+    searchlist, showcommands, forwardcommand, altkey, altuser, noprofile = get_searchstr()
     if altuser is not None:
       sshuser = altuser[0]
     if altkey is not None:
@@ -110,7 +111,10 @@ def main():
       fields = lines[menu_entry_index].strip().split(',')
       id=fields[2].strip()
       ifo = f'-i {keyfile} -o IdentitiesOnly=yes -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'
-      pco = f'-o ProxyCommand="sh -c \'aws ssm start-session --target %h --document-name AWS-StartSSHSession --parameters \"portNumber=%p\" --profile={fields[0]} --region={fields[4]}\'"'
+      if noprofile:
+        pco = f'-o ProxyCommand="sh -c \'aws ssm start-session --target %h --document-name AWS-StartSSHSession --parameters \"portNumber=%p\" --region={fields[4]}\'"'
+      else:
+        pco = f'-o ProxyCommand="sh -c \'aws ssm start-session --target %h --document-name AWS-StartSSHSession --parameters \"portNumber=%p\" --profile={fields[0]} --region={fields[4]}\'"'
       if showcommands is False:
         if forwardcommand is None:
           try:
@@ -124,7 +128,10 @@ def main():
         else:
           lport = forwardcommand[0]
           dport = forwardcommand[1]
-          pc = 'aws ssm start-session --target ' + id + ' --profile=' + fields[0] + ' --region=' + fields[4] + ' --document-name AWS-StartPortForwardingSession --parameters \'{"portNumber":["' + dport + '"],"localPortNumber":["' + lport + '"]}\''
+          if noprofile:
+            pc = 'aws ssm start-session --target ' + id + ' --region=' + fields[4] + ' --document-name AWS-StartPortForwardingSession --parameters \'{"portNumber":["' + dport + '"],"localPortNumber":["' + lport + '"]}\''
+          else:
+            pc = 'aws ssm start-session --target ' + id + ' --profile=' + fields[0] + ' --region=' + fields[4] + ' --document-name AWS-StartPortForwardingSession --parameters \'{"portNumber":["' + dport + '"],"localPortNumber":["' + lport + '"]}\''
           print(f'{pc}')
           os.system(f'{pc}')
       else:
