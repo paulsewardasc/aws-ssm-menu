@@ -74,27 +74,53 @@ def main():
           #  sys.exit()
           for instance in ssm_instance_store:
             instanceId = instance['InstanceId']
-            instance_details = ec2.describe_instances(InstanceIds=[instanceId])['Reservations'][0]['Instances'][0]
+            #aws ssm describe-instance-information --instance-information-filter-list key=InstanceIds,valueSet=mi-01a6c52fd727e05a8 --profile=asc-infrastructure --region=eu-west-2
             name = "blank"
-            try:
-              if instance_details['Tags']:
-                for tag in instance_details['Tags']:
-                  if tag['Key'] == 'Name':
-                    name = tag['Value']
-            except:
-              None
+            if instanceId.startswith('i-'):
+              instance_details = ec2.describe_instances(InstanceIds=[instanceId])['Reservations'][0]['Instances'][0]
+              try:
+                if instance_details['Tags']:
+                  for tag in instance_details['Tags']:
+                    if tag['Key'] == 'Name':
+                      name = tag['Value']
+              except:
+                None
+            else:
+              filter={'key': 'InstanceIds', 'valueSet': [instanceId]}
+              instance_details = ssm.describe_instance_information(InstanceInformationFilterList=[filter])['InstanceInformationList'][0]
+              #print(json.dumps(instance_details, indent=2, default=datetime_handler))
+              #sys.exit()
+              try:
+                if instance_details['Name']:
+                  name = instance_details['Name']
+              except:
+                None
             try:
               publicIp = instance_details['PublicIpAddress']
             except:
               publicIp = ''
-            ec2info[instanceId] = {
-              'Name': name,
-              'Type': instance_details['InstanceType'],
-              'State': instance_details['State']['Name'],
-              'Private IP': instance_details['NetworkInterfaces'][0]['PrivateIpAddress'],
-              'Public IP': publicIp,
-              'Region' : region
-            }
+            try:
+              privateIp = instance_details['NetworkInterfaces'][0]['PrivateIpAddress']
+            except:
+              privateIp = ''
+            if instanceId.startswith('i-'): 
+              ec2info[instanceId] = {
+                'Name': name,
+                'Type': instance_details['InstanceType'],
+                'State': instance_details['State']['Name'],
+                'Private IP': privateIp,
+                'Public IP': publicIp,
+                'Region' : region
+              }
+            else:
+              ec2info[instanceId] = {
+                'Name': name,
+                'Type': 'XXX',
+                'State': instance_details['PingStatus'],
+                'Private IP': instance_details['IPAddress'],
+                'Public IP': publicIp,
+                'Region' : region
+              }
         except Exception as e:
           print('Error on line [{}] {}'.format(profile,sys.exc_info()[-1].tb_lineno), type(e).__name__, e)
           sys.exit()
