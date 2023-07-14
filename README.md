@@ -64,10 +64,11 @@ git clone git@github.com:paulsewardasc/aws-ssm-menu.git
 * Run the following
 
 ```bash
-cp ./ssm-menu/ssm-menu/ssm.py ~/.local/bin/ssm
+mkdir -p ~/.local/bin
+cp ./ssm-menu/ssm.py ~/.local/bin/ssm
 chmod +x ~/.local/bin/ssm
-cp ./ssm-menu/ssm-menu/ssmmenu.py ~/.local/bin/ssmmenu
-cp ./ssm-menu/vaultae.sh ~/.local/bin/vaultae
+cp ./ssm-menu/ssmmenu.py ~/.local/bin/ssmmenu
+cp ./vaultae.sh ~/.local/bin/vaultae
 chmod +x ~/.local/bin/ssmmenu
 chmod +x ~/.local/bin/vaultae
 ssm
